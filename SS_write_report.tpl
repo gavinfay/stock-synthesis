@@ -1451,9 +1451,9 @@ FUNCTION void write_bigoutput()
   SS2out<<"#_Fleet units errtype"<<endl;
   if(Ndisc_fleets>0)
   {
-    for (int ff=1;ff<=N_catchfleets;ff++)
+    for (int ff=1;ff<=N_catchfleets(0);ff++)
     {
-      f=fish_fleet(ff);
+      f=fish_fleet_area(0,ff);
       if(disc_units(f)>0) SS2out<<f<<" "<<disc_units(f)<<" "<<disc_errtype(f)<<" # "<<fleetname(f)<<endl;
     }
   }
@@ -1668,7 +1668,7 @@ FUNCTION void write_bigoutput()
 
 //Fleet N Npos mean_effN mean(inputN*Adj) HarMean(effN) Mean(effN/inputN) MeaneffN/MeaninputN Var_Adj
 //long ago, Ian Stewart had the proto-r4ss add a column called "HarEffN/MeanInputN" which was the ratio of the columns "HarMean(effN)" column and the "mean(inputN*Adj)" and has been used as the multiplier on the adjustment factor in the status-quo NWFSC tuning approach.
-//My suggestion would be to remove the columns "Mean(effN/inputN)" and "MeaneffN/MeaninputN" if those are not recommended values for tuning (I don't get the impression that they are) and have SS internally produce the "HarEffN/MeanInputN" column so that it's available to all users.
+//My suggestion would be to remove the columns "Mean(effN/inputN)" and "MeaneffN/MeaninputN" if those are not recommended values for tuning (I don't get the impression that they are) and have SS3 internally produce the "HarEffN/MeanInputN" column so that it's available to all users.
 //It might also be good to add a keyword to the top of those lower tables which could simplify the logic of parsing them separately from the FIT_..._COMPS tables above them and therefore be more robust to changes in format.
 
    SS2out<<"#"<<endl<<"Length_Comp_Fit_Summary"<<endl<<
@@ -2376,7 +2376,8 @@ FUNCTION void write_bigoutput()
     SS2out<<endl<<pick_report_name(41)<<endl;
      SS2out << "Area Fleet Sex  XX XX Type Morph Yr Seas XX Era"<<age_vector <<endl;
      for (f=1;f<=Nfleet;f++)
-     if((fleet_type(f)<=2 && Do_Retain(f)>0) || fleet_type(f)==4)
+//     if((fleet_type(f)<=2 && Do_Retain(f)>0) || fleet_type(f)==4)
+     if((fleet_type(f)<=2 && Do_Retain(f)>0))
      for (g=1;g<=gmorph;g++)
      {
      if(use_morph(g)>0)
@@ -3353,7 +3354,7 @@ FUNCTION void SPR_profile()
   dvariable YPR_last;
 
     SS2out<<endl<<pick_report_name(54)<<endl;
-    SS2out<<"SPRloop Iter Bycatch Fmult F_report SPR YPR YPR*Recr SSB Recruits SSB/Bzero Tot_Catch ";
+    SS2out<<"SPRloop Iter Bycatch Fmult F_report SPR YPR_dead YPR_dead*Recr YPR_ret*Recr Revenue Cost Profit SSB Recruits SSB/Bzero Tot_Catch ";
     for (f=1;f<=Nfleet;f++) {if(fleet_type(f)<=2) SS2out<<" "<<fleetname(f)<<"("<<f<<")Dead";}
     for (f=1;f<=Nfleet;f++) {if(fleet_type(f)<=2) SS2out<<" "<<fleetname(f)<<"("<<f<<")Ret";}
     for (f=1;f<=Nfleet;f++) {if(fleet_type(f)<=2) SS2out<<" "<<fleetname(f)<<"("<<f<<")Age";}
@@ -3518,7 +3519,8 @@ FUNCTION void SPR_profile()
           if(SPRloop1==0) Fcrash=Fmult2;
         }
         SS2out<<SPRloop1<<" "<<SPRloop<<" "<<with_BYC<<" "<<Fmult2<<" "<<equ_F_std<<" "<<SSB_equil/(SSB_unf/Recr_unf)<<" "<<YPR_dead<<" "
-        <<YPR_dead*Btgt_prof_rec<<" "<<Btgt_prof<<" "<<Btgt_prof_rec<<" "<<Btgt_prof/SSB_unf
+        <<YPR_dead*Btgt_prof_rec<<" "<<YPR_ret*Btgt_prof_rec<<" "<<(PricePerF*YPR_val_vec)*Btgt_prof_rec
+        <<" "<<Cost<<" "<<(PricePerF*YPR_val_vec)*Btgt_prof_rec-Cost<<" "<<Btgt_prof<<" "<<Btgt_prof_rec<<" "<<Btgt_prof/SSB_unf
         <<" "<<value(sum(equ_catch_fleet(2))*Btgt_prof_rec);
         for(f=1;f<=Nfleet;f++)
           if(fleet_type(f)<=2)

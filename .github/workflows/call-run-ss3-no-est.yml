@@ -1,0 +1,14 @@
+# run models without estimation
+name: run-no-est
+on: 
+  push:
+    paths:
+    - '**.tpl'
+  pull_request:
+    paths:
+      - '**.tpl'
+  workflow_dispatch:
+
+jobs:
+  call-workflow:
+    uses: nmfs-stock-synthesis/workflows/.github/workflows/run-ss3-no-est.yml@main
