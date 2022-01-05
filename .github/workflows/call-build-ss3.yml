@@ -1,0 +1,12 @@
+name: call-build-ss3
+on: 
+  push:
+    paths:
+    - '**.tpl'
+  pull_request:
+    paths:
+      - '**.tpl'
+  workflow_dispatch:
+jobs:
+  call-workflow:
+    uses: nmfs-stock-synthesis/workflows/.github/workflows/build-ss3.yml@main

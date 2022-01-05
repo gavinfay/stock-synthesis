@@ -1,0 +1,16 @@
+on: 
+  push:
+    branches:
+      - main
+    paths:
+      - '**.tpl'
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - '**.tpl'
+  workflow_dispatch:
+name: call-test-r4ss-with-ss3
+jobs:
+  call-workflow:
+    uses: nmfs-stock-synthesis/workflows/.github/workflows/test-r4ss-with-ss3.yml@main

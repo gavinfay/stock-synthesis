@@ -1,7 +1,7 @@
 // SS_Label_file  #7. **SS_global.tpl**
 // SS_Label_file  # - <div style="color: #ff0000">RUNTIME_SECTION</div>
 // SS_Label_file  #
-// SS_Label_file  #     - not used by SS
+// SS_Label_file  #     - not used by SS3
 // SS_Label_file  # - <div style="color: #ff0000">TOP_OF_MAIN_SECTION</div>
 // SS_Label_file  #
 // SS_Label_file  #     - revise some memory and array constraints
@@ -29,7 +29,7 @@
 // SS_Label_file  #     - produces *ss.rep*, but see write_big_output for the more complete *report.sso*
 // SS_Label_file  #
 
-//  SS_Label_Section_8 #RUNTIME_SECTION (not used in SS)
+//  SS_Label_Section_8 #RUNTIME_SECTION (not used in SS3)
 RUNTIME_SECTION
 //  {
 //  maximum_function_evaluations 200, 200, 200, 200, 200, 200, 200, 2000;
@@ -651,9 +651,9 @@ BETWEEN_PHASES_SECTION
 //  SS_Label_Info_11.2 #For Fmethod=2 & 4, set parameter values (F_rate) equal to Hrate array fromcalculated using hybrid method in previous phase
     if(N_Fparm>0 && j_phase>1)
     {
-      for(int ff=1;ff<=N_catchfleets;ff++)
+      for(int ff=1;ff<=N_catchfleets(0);ff++)
       {
-        f=fish_fleet(ff);
+        f=fish_fleet_area(0,ff);
       if(F_Method_byPH(f,j_phase) < F_Method_byPH(f,j_phase-1))
       {
         for (g=Fparm_loc_st(f);g<=Fparm_loc_end(f);g++)
