@@ -1,5 +1,5 @@
 // SS_Label_file  #4. **SS_readcontrol.tpl**
-// SS_Label_file  # * read *control_file* named in STARTER.SS
+// SS_Label_file  # * read *control_file* named in starter.ss
 // SS_Label_file  #     * define and read needed parameters from model options selected
 // SS_Label_file  #     * creates labels for those parameters
 // SS_Label_file  #     * uses a function found in SS_global, <u>create_timevary()</u>, to create, index and label time-varying parameters; including autogeneration option
@@ -624,7 +624,8 @@
 // read natmort setup
  LOCAL_CALCS
    N_natMparms=0;
-   N_predparms=N_pred+N_pred*nseas;
+   N_predparms=N_pred;
+   if(nseas>1) N_predparms+=N_pred*nseas;
    natM_5_opt=0;
    MGparm_point.initialize();
 //  0=1Parm; 1=segmented; 2=Lorenzen; 3=agespecific; 4=agespec with seas interpolate; 5=Maunder_M
@@ -910,7 +911,7 @@
   !! echoinput<<First_Mature_Age<<"  First_Mature_Age"<<endl;
 
   init_int Fecund_Option
-//   Value=1 means interpret the 2 egg parameters as linear eggs/kg on body weight (current SS default),
+//   Value=1 means interpret the 2 egg parameters as linear eggs/kg on body weight (current SS3 default),
 //   so eggs = wt * (a+b*wt), so value of a=1, b=0 causes eggs to be equiv to spawning biomass
 //   Value=2 sets eggs=a*L^b   so cannot make equal to biomass
 //   Value=3 sets eggs=a*W^b, so values of a=1, b=1 causes eggs to be equiv to spawning biomass
@@ -1948,7 +1949,7 @@
     if(Fcast_Loop_Control(3)==3 && Fcast_recr_PH_rd>=0)
     	{N_warn++; warning<<N_warn<<" mean recruitment for forecast is incompatible with pos. phase for forecast rec_devs; set phase to neg. unless using late rec_devs"<<endl;}
     if(Do_Impl_Error>0 && Fcast_recr_PH_rd<0)
-    	{N_warn++; warning<<N_warn<<" Implementation error incompatible with neg. phase for forecast rec_devs; SS will run without active impl error"<<endl;}
+    	{N_warn++; warning<<N_warn<<" Implementation error incompatible with neg. phase for forecast rec_devs; SS3 will run without active impl error"<<endl;}
     echoinput<<recdev_adj(1)<<" #_last_early_yr_nobias_adj_in_MPD"<<endl;
     echoinput<<recdev_adj(2)<<" #_first_yr_fullbias_adj_in_MPD"<<endl;
     echoinput<<recdev_adj(3)<<" #_last_yr_fullbias_adj_in_MPD"<<endl;
@@ -2349,10 +2350,11 @@
       if (fleet_type(f)<=2)  //  catch or bycatch fleet
       {
         {
-          F_Method_byPH(f)(1,50)=3;  //  for early phases
-          if(F_Method_PH(f)>0 && F_Method_PH(f)<99) F_Method_byPH(f)(F_Method_PH(f),50)=2;  //  for later phases, but can be changed by F_detail
-        echoinput<<f<<" phase to switch to parms "<<F_Method_PH(f)<<endl;
-        if(F_Method_byPH(f,50)==2)
+          echoinput<<f<<" phase to switch to parms "<<F_Method_PH(f)<<endl;
+          if(fleet_type(f)==1) F_Method_byPH(f)(1,50)=3;  //  fill hybrid but can overwrite below
+          if(F_Method_PH(f)<0) F_Method_byPH(f)(1,50)=2;  //  parameter for all phases because will be fixed F 
+          if(F_Method_PH(f)>0 && F_Method_PH(f)<99) F_Method_byPH(f)(F_Method_PH(f),50)=2;  //  for later phases
+        if(F_Method_byPH(f,50)==2)  //  end up in parameter state, or using fixed F inputs
         {
           echoinput<<" create parms for fleet "<<f<<endl;
           Fparm_loc_st(f)=N_Fparm+1;
@@ -2617,12 +2619,12 @@
      j=Q_setup_parms(f,1);
      echoinput<<"fleet "<<f<<" base index "<<j<<endl;
      if(Q_setup(f,5)==1)  //  float
-      {if(Q_parm_1(j,7)>=0)  {N_warn++;   warning<<N_warn<<" "<<"fleet: "<<f<<"  SS changed Q to not estimate because it is set to float"<<endl;  Q_parm_1(j,7)=-1; }
+      {if(Q_parm_1(j,7)>=0)  {N_warn++;   warning<<N_warn<<" "<<"fleet: "<<f<<"  SS3 changed Q to not estimate because it is set to float"<<endl;  Q_parm_1(j,7)=-1; }
       }
 
 //  depletion fleet check
     if(Svy_units(f)==34)  //  special code for depletion
-    	{if(Q_parm_1(j,7)>=0)  {N_warn++;   warning<<N_warn<<" "<<"fleet: "<<f<<" SS changed Q to not estimate because it is depletion fleet"<<endl;  Q_parm_1(j,7)=-1; }
+    	{if(Q_parm_1(j,7)>=0)  {N_warn++;   warning<<N_warn<<" "<<"fleet: "<<f<<" SS3 changed Q to not estimate because it is depletion fleet"<<endl;  Q_parm_1(j,7)=-1; }
     	}
 
 
@@ -2833,7 +2835,7 @@
 		{
 			if(f<=Nfleet)
 			{
-				N_warn++;  warning<<N_warn<<" "<<"fleet: "<<f<<"  cannot use >100 code for length selectivity; SS will correct"<<endl;
+				N_warn++;  warning<<N_warn<<" "<<"fleet: "<<f<<"  cannot use >100 code for length selectivity; SS3 will correct"<<endl;
 				j=int(seltype(f,1)/100);
 				k=seltype(f,1)-100*j;
 				seltype_rd(f,1)=k;  //  change input value so will be written correctly in ss_new
@@ -2848,10 +2850,10 @@
 				{echoinput<<"OK to use min_selage for selex pattern: "<<k<<" for fleet: "<<f-Nfleet<<endl;}
 				else if (k==17 || k==44 || k==45)
 			  {N_warn++;  warning<<N_warn<<" "<<"Don't use min_selage for age selectivity: "<<k<<" for fleet: "<<f-Nfleet<<
-			  " because separate control exists; SS will correct"<<endl; seltype_rd(f,1)=k;} //  change input value so will be written correctly in ss_new
+			  " because separate control exists; SS3 will correct"<<endl; seltype_rd(f,1)=k;} //  change input value so will be written correctly in ss_new
 				else if (k==19)
 			  {N_warn++;  warning<<N_warn<<" "<<"can't use min_selage for age selectivity: "<<k<<" for fleet: "<<f-Nfleet<<
-			  	" because separate control sets sel = 1.0e-06 below a specified age SS will correct"<<endl;seltype_rd(f,1)=k;}
+			  	" because separate control sets sel = 1.0e-06 below a specified age SS3 will correct"<<endl;seltype_rd(f,1)=k;}
 				else if (k==20)
 			  {N_warn++;  warning<<N_warn<<" "<<"OK to use min_selage for age selectivity: "<<k<<" for fleet: "<<f-Nfleet<<
 			  	" but be aware that a separate control for parm 5 can set sel = 1.0e-06 below a specified age"<<endl;}
@@ -3434,15 +3436,15 @@
         j=int(selparm_1(parmcount+2,3));
         if((selparm_1(parmcount+1,3)-i)>0.)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range min read is: "<<selparm_1(parmcount+1,3)<<"; SS expected an integer and will convert "<<endl; selparm_1(parmcount+1,3)=i;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range min read is: "<<selparm_1(parmcount+1,3)<<"; SS3 expected an integer and will convert "<<endl; selparm_1(parmcount+1,3)=i;
         	}
         if((selparm_1(parmcount+2,3)-j)>0.)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range max read is: "<<selparm_1(parmcount+2,3)<<"; SS expected an integer and will convert "<<endl; selparm_1(parmcount+2,3)=j;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range max read is: "<<selparm_1(parmcount+2,3)<<"; SS3 expected an integer and will convert "<<endl; selparm_1(parmcount+2,3)=j;
         	}
         if(selparm_1(parmcount+2,3)>nlength)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range max read is: "<<selparm_1(parmcount+2,3)<<"; is >nsizes; SS will convert "<<endl; selparm_1(parmcount+2,3)=nlength;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" size selex range max read is: "<<selparm_1(parmcount+2,3)<<"; is >nsizes; SS3 will convert "<<endl; selparm_1(parmcount+2,3)=nlength;
         	}
        	echoinput<<" accepted range: "<<selparm_1(parmcount+1,3)<<" "<<selparm_1(parmcount+2,3)<<endl;
         echoinput<<"set to no prior and not estimated, just in case "<<endl;
@@ -3472,15 +3474,15 @@
         selparm_1(parmcount+2,7)=-99;
         if((selparm_1(parmcount+1,3)-i)>0.)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range min read is: "<<selparm_1(parmcount+1,3)<<"; SS expected an integer and will convert "<<endl; selparm_1(parmcount+1,3)=i;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range min read is: "<<selparm_1(parmcount+1,3)<<"; SS3 expected an integer and will convert "<<endl; selparm_1(parmcount+1,3)=i;
         	}
         if((selparm_1(parmcount+2,3)-j)>0.)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range max read is: "<<selparm_1(parmcount+2,3)<<"; SS expected an integer and will convert "<<endl; selparm_1(parmcount+2,3)=j;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range max read is: "<<selparm_1(parmcount+2,3)<<"; SS3 expected an integer and will convert "<<endl; selparm_1(parmcount+2,3)=j;
         	}
         if(selparm_1(parmcount+2,3)>nages)
         	{
-        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range max read is: "<<selparm_1(parmcount+2,3)<<"; is >nages; SS will convert "<<endl; selparm_1(parmcount+2,3)=nages;
+        		N_warn++; warning<<N_warn<<" "<<"fleet: "<<f<<" age selex range max read is: "<<selparm_1(parmcount+2,3)<<"; is >nages; SS3 will convert "<<endl; selparm_1(parmcount+2,3)=nages;
         	}
         	echoinput<<" accepted range: "<<selparm_1(parmcount+1,3)<<" "<<selparm_1(parmcount+2,3)<<endl;
 			mirror_mask_a(f)=0;

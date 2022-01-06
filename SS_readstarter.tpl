@@ -200,8 +200,8 @@
 
   if ( (on=option_match(argc,argv,"-noest"))>-1)
   {
-    cout<<"SS is not configured to work with -noest; use -maxI instead which overrides maxphase in starter.ss"<<endl;
-     N_warn++; warning<<N_warn<<" SS exited with -noest, use -maxI <maxphase> instead"<<endl;
+    cout<<"SS3 is not configured to work with -noest; use -maxI instead which overrides maxphase in starter.ss"<<endl;
+     N_warn++; warning<<N_warn<<" SS3 exited with -noest, use -maxI <maxphase> instead"<<endl;
     exit(1);
   }
 
@@ -219,10 +219,10 @@
   }
    echoinput<<" -nohess flag (1 means do Hessian): "<<SDmode<<endl;
 
-//  SS_Label_Info_1.2  #Read the STARTER.SS file
-// /*  SS_Label_Flow  read STARTER.SS */
+//  SS_Label_Info_1.2  #Read the starter.ss file
+// /*  SS_Label_Flow  read starter.ss */
   ad_comm::change_datafile_name("starter.ss");       //  get filenames
-  cout<<" reading from STARTER.SS"<<endl;
+  cout<<" reading from starter.ss"<<endl;
   adstring checkchar;
   line_adstring readline;
   checkchar="";
@@ -370,8 +370,10 @@
   	pick_report_use(49)="N";
   	pick_report_use(50)="N";
   	pick_report_use(53)="N";
+  	pick_report_use(55)="N";
   	pick_report_use(57)="N";
   	pick_report_use(58)="N";
+  	pick_report_use(59)="N";
   }
   else  //  all on
   {

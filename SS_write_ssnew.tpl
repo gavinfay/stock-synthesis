@@ -1061,7 +1061,7 @@ FUNCTION void write_nudata()
   {
     dvector temp_negbin(1,50000);
 
-    // changes authored by Gavin Fay in June 2016 in SS 3.24Y
+    // changes authored by Gavin Fay in June 2016 in SS3 3.24Y
     TG_recap_gen.initialize();
     int N_TG_recap_gen=0;
     for(TG=1;TG<=N_TG;TG++)
@@ -1216,8 +1216,19 @@ FUNCTION void write_nucontrol()
   NuFore<<version_info(1)<<version_info(2)<<version_info(3)<<endl;
   if(N_FC>0) NuFore<<Forecast_Comments<<endl;
   NuFore<<"# for all year entries except rebuilder; enter either: actual year, -999 for styr, 0 for endyr, neg number for rel. endyr"<<endl;
-  NuFore<<Do_Benchmark<<" # Benchmarks: 0=skip; 1=calc F_spr,F_btgt,F_msy; 2=calc F_spr,F0.1,F_msy;  3=add F_Blimit"<<endl;
-  NuFore<<Do_MSY<<" # MSY: 1= set to F(SPR); 2=calc F(MSY); 3=set to F(Btgt) or F0.1; 4=set to F(endyr) "<<endl;
+  NuFore<<Do_Benchmark<<" # Benchmarks: 0=skip; 1=calc F_spr,F_btgt,F_msy; 2=calc F_spr,F0.1,F_msy; 3=add F_Blimit; "<<endl;
+  NuFore<<Do_MSY<<" # Do_MSY: 1= set to F(SPR); 2=calc F(MSY); 3=set to F(Btgt) or F0.1; 4=set to F(endyr); 5=calc F(MEY)"<<endl;
+  NuFore << "# if Do_MSY=5, enter MSY_Units; then list fleet_ID, cost/F, price/mt; -fleet_ID to fill; -9999 to terminate" << endl; 
+  if(Do_MSY==5)
+  {
+    NuFore<<MSY_units<<" # MSY_units: 1=dead biomass, 2=retained biomass, 3=profits"<<endl;
+    for (f=1;f<=Nfleet;f++)
+    {
+      if(YPR_mask(f)>0.0) NuFore << f<<" "<<CostPerF(f)<<" "<<PricePerF(f)<<endl;
+    }
+    NuFore<<"-9999 1 1 # terminate list of fleet costs and prices"<<endl;
+  }
+
   NuFore<<SPR_target<<" # SPR target (e.g. 0.40)"<<endl;
   NuFore<<BTGT_target<<" # Biomass target (e.g. 0.40)"<<endl;
   if(Do_Benchmark==3) NuFore<<Blim_frac<<" # COND: Do_Benchmark==3;  Blimit as fraction of Bmsy (neg value to use as frac of Bzero) (e.g. 0.50)"<<endl;
@@ -1331,6 +1342,7 @@ FUNCTION void write_nucontrol()
     else
     {NuFore<<"# no allocation groups"<<endl;}
 
+  NuFore<<"#"<<endl;
   NuFore<<Fcast_InputCatch_Basis<<
   " # basis for input Fcast catch: -1=read basis with each obs; 2=dead catch; 3=retained catch; 99=input apical_F; NOTE: bio vs num based on fleet's catchunits"<<endl;
 
@@ -1355,7 +1367,7 @@ FUNCTION void write_nucontrol()
   if(N_CC>0) report4<<Control_Comments<<endl;
   report4 << "#_data_and_control_files: "<<datfilename<<" // "<<ctlfilename<<endl;
   report4<<WTage_rd<<"  # 0 means do not read wtatage.ss; 1 means read and use wtatage.ss and also read and use growth parameters"<<endl;
-  report4 << N_GP << "  #_N_Growth_Patterns (Growth Patterns, Morphs, Bio Patterns, GP are terms used interchangeably in SS)"<<endl;
+  report4 << N_GP << "  #_N_Growth_Patterns (Growth Patterns, Morphs, Bio Patterns, GP are terms used interchangeably in SS3)"<<endl;
   report4 << N_platoon << " #_N_platoons_Within_GrowthPattern "<<endl;
   if(N_platoon==1) report4<<"#_Cond ";
   report4<<sd_ratio<<" #_Platoon_within/between_stdev_ratio (no read if N_platoons=1)"<<endl;
@@ -1670,7 +1682,7 @@ FUNCTION void write_nucontrol()
    report4<<onenum<<recdev_adj(1)<<" #_last_yr_nobias_adj_in_MPD; begin of ramp"<<endl;
    report4<<onenum<<recdev_adj(2)<<" #_first_yr_fullbias_adj_in_MPD; begin of plateau"<<endl;
    report4<<onenum<<recdev_adj(3)<<" #_last_yr_fullbias_adj_in_MPD"<<endl;
-   report4<<onenum<<recdev_adj(4)<<" #_end_yr_for_ramp_in_MPD (can be in forecast to shape ramp, but SS sets bias_adj to 0.0 for fcast yrs)"<<endl;
+   report4<<onenum<<recdev_adj(4)<<" #_end_yr_for_ramp_in_MPD (can be in forecast to shape ramp, but SS3 sets bias_adj to 0.0 for fcast yrs)"<<endl;
    report4<<onenum<<recdev_adj(5)<<" #_max_bias_adj_in_MPD (typical ~0.8; -3 sets all years to 0.0; -2 sets all non-forecast yrs w/ estimated recdevs to 1.0; -1 sets biasadj=1.0 for all yrs w/ recdevs)"<<endl;
    report4<<onenum<<recdev_cycle<<" #_period of cycles in recruitment (N parms read below)"<<endl;
    report4<<onenum<<recdev_LO<<" #min rec_dev"<<endl;
@@ -1775,7 +1787,7 @@ FUNCTION void write_nucontrol()
   else if(F_Method==4)
   {
     report4<<"# read list of fleets that do F as parameter; unlisted fleets stay hybrid, bycatch fleets must be included with start_PH=1, high F fleets should switch early"<<endl;
-    report4<<"# (A) fleet, (B) F_initial_value (used if start_PH=1), (C) start_PH for parms (99 to stay in hybrid)"<<endl;
+    report4<<"# (A) fleet, (B) F_starting_value (used if start_PH=1), (C) start_PH for parms (99 to stay in hybrid, <0 to stay at starting value)"<<endl;
     report4<<"# (A) (B) (C)  (terminate list with -9999 for fleet)"<<endl;
     for(int j=1;j<=F_Method_4_input.size()-2;j++) {report4<<F_Method_4_input[j]<<" # "<<fleetname(F_Method_4_input[j](1))<<endl;}
     report4<<"-9999 1 1 # end of list"<<endl;

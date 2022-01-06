@@ -1,0 +1,16 @@
+name:  call-build-ss3-warnings
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.tpl'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '**.tpl'
+    branches:
+      - main
+jobs:
+  call-workflow:
+    uses: nmfs-stock-synthesis/workflows/.github/workflows/build-ss3-warnings.yml@main
